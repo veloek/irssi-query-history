@@ -11,8 +11,6 @@ $VERSION = '0.0.1';
     license     => 'MIT'
 );
 
-use constant MAX_ENTRIES => 10;
-
 sub sig_query_created {
     my ($query, $auto) = @_;
     my $qwin = $query->window();
@@ -49,8 +47,6 @@ sub sig_query_created {
     my @log = ();
 
     if (open (my $fh, '<:encoding(UTF-8)', $filename)) {
-        $qwin->print('--- Query history with '.$name.':');
-
         ENTRY:
         while (my $entry = <$fh>) {
             chomp $entry;
@@ -61,17 +57,21 @@ sub sig_query_created {
             # Skip "-!- Irssi" messages
             next ENTRY if ($entry =~ /^\d\d:\d\d -!- Irssi:/);
 
-            push(@log, $entry);
+            push(@log, '%b-%n!%b-%n '.$entry);
         }
 
-        # Print up to MAX_ENTRIES log entries from the end
+        # Print a number of log entries from the end
         my $logsize = @log;
+        my $max_entries = Irssi::settings_get_int('query_history_num');
+        my @output = ();
 
-        for (my $i = $logsize-(MAX_ENTRIES); $i < $logsize; $i++) {
+        for (my $i = $logsize-$max_entries; $i < $logsize; $i++) {
             if ($i > 0) {
-                $qwin->print(@log[$i]);
+                push(@output, @log[$i]);
             }
         }
+
+        $qwin->print(join("\n", @output), MSGLEVEL_CLIENTCRAP);
 
     } else {
         Irssi::print('query_history.pl: No active log for '.
@@ -79,4 +79,5 @@ sub sig_query_created {
     }
 }
 
+Irssi::settings_add_int($IRSSI{name}, 'query_history_num', 10);
 Irssi::signal_add_last('query created', 'sig_query_created');
