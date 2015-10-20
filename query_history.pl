@@ -2,7 +2,7 @@ use strict;
 use vars qw($VERSION %IRSSI);
 
 use Irssi;
-$VERSION = '0.0.1';
+$VERSION = '0.0.3';
 %IRSSI = (
     authors     => 'Vegard Løkken',
     contact     => 'vegard@loekken.org',
@@ -54,8 +54,8 @@ sub sig_query_created {
             # Skip "log opened/closed" messages
             next ENTRY if ($entry =~ /^--- Log (opened|closed)/);
 
-            # Skip "-!- Irssi" messages
-            next ENTRY if ($entry =~ /^\d\d:\d\d -!- Irssi:/);
+            # Skip "-!- " messages since they're usually status msgs
+            next ENTRY if ($entry =~ /^\d\d:\d\d -!- /);
 
             push(@log, '%b-%n!%b-%n '.$entry);
         }
